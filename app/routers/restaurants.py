@@ -1,15 +1,33 @@
-from io import BytesIO
+from enum import Enum
 import joblib
 import pandas as pd
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from .. import crud, schemas, dependencies
 
 router = APIRouter()
 
 
+class RestaurantChoices(str, Enum):
+    aspava = "Aspava"
+    kofteci_yusuf = "Köfteci Yusuf"
+
+
 with open("./saved_models/restaurant/restaurant_ml_pipe.joblib", "rb") as f:
     RESTAURANT_MODEL = joblib.load(f)
+
+
+@router.get(
+    "/restaurants/",
+    tags=["restaurants"],
+)
+async def get_restaurant(
+    restaurant: RestaurantChoices, db: Session = Depends(dependencies.get_db)
+):
+    db_restaurant = crud.get_restaurant_by_name(db=db, restaurant_name=restaurant.value)
+    if not db_restaurant:
+        raise HTTPException(status_code=404, detail="Restaurant does not exist!")
+    return {f"details of {restaurant.value}": db_restaurant}
 
 
 @router.post("/restaurants/", tags=["restaurants"])
