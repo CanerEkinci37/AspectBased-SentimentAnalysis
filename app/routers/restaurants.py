@@ -13,7 +13,7 @@ class RestaurantChoices(str, Enum):
     kofteci_yusuf = "Köfteci Yusuf"
 
 
-with open("./saved_models/restaurant/restaurant_ml_pipe.joblib", "rb") as f:
+with open("./saved_models/restaurant/restaurant_literature1.joblib", "rb") as f:
     RESTAURANT_MODEL = joblib.load(f)
 
 
@@ -54,6 +54,9 @@ async def create_restaurant(
     for k, v in restaurant_category_count.items():
         results.append(f"{restaurant_category[k]}: {v}")
         crud.create_restaurant(
-            db=db, restaurant_name=restaurant_name, category_id=k + 1, category_count=v
+            db=db,
+            restaurant_name=restaurant_name,
+            category_id=k + 1,
+            category_count=v,
         )
     return {f"results of {restaurant_name}": results}

@@ -37,6 +37,31 @@ def get_restaurant_category_count():
     return restaurant_category_count
 
 
+def get_otel_category():
+    category_sentiment_dict = {}
+
+    aspects = ["SERVICE", "MEAL", "LOCATION", "COMFORT", "CLEANLINESS"]
+    sentiments = ["NEGATIVE", "NEUTRAL", "POSITIVE"]
+
+    count = 0
+    for aspect in aspects:
+        for sentiment in sentiments:
+            category_sentiment_dict[aspect + "#" + sentiment] = count
+            count += 1
+
+    num_to_category_sentiment = {}
+    for k, v in category_sentiment_dict.items():
+        num_to_category_sentiment[v] = k
+    return num_to_category_sentiment
+
+
+def get_otel_category_count():
+    otel_category_count = {}
+    for i in range(15):
+        otel_category_count[i] = 0
+    return otel_category_count
+
+
 async def handle_dataset(dataset: UploadFile = File(...)):
     contents = dataset.file.read()
     data = BytesIO(contents)

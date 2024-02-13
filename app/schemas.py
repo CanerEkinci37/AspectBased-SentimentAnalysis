@@ -8,21 +8,49 @@ class RestaurantBase(BaseModel):
 class Restaurant(RestaurantBase):
     id: int
     category_count: int
-    category_id: int
+    restaurant_category_id: int
 
     class Config:
         orm_mode = True
 
 
-class CategoryBase(BaseModel):
+class RestaurantCategoryBase(BaseModel):
     category_name: str
 
 
-class CategoryCreate(CategoryBase):
+class RestaurantCategoryCreate(RestaurantCategoryBase):
     pass
 
 
-class Category(CategoryBase):
+class RestaurantCategory(RestaurantCategoryBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class OtelBase(BaseModel):
+    otel_name: str
+
+
+class Otel(OtelBase):
+    id: int
+    category_count: int
+    otel_category_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class OtelCategoryBase(BaseModel):
+    category_name: str
+
+
+class OtelCategoryCreate(OtelCategoryBase):
+    pass
+
+
+class OtelCategory(OtelCategoryBase):
     id: int
 
     class Config:
