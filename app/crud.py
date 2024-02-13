@@ -5,14 +5,16 @@ from . import models, schemas
 
 def get_restaurant(db: Session, restaurant_id: int):
     return (
-        db.query(models.Restaurant).filter(models.Restaurant.id == restaurant_id).all()
+        db.query(models.Restaurant)
+        .filter(models.Restaurant.id == restaurant_id)
+        .first()
     )
 
 
 def get_restaurant_by_name(db: Session, restaurant_name: str):
     return (
         db.query(models.Restaurant)
-        .filter(models.Restaurant.restaurant_name == restaurant_name)
+        .filter(models.Restaurant.restaurant_name.like(restaurant_name))
         .all()
     )
 
