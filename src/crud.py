@@ -108,11 +108,9 @@ def get_business_id(db: Session, name: str, business_category_id: int):
         return db_business.id
 
 
-def create_business(
-    db: Session, business: schemas.BusinessCreate, business_category_id
-):
+def create_business(db: Session, business_name: str, business_category_id):
     db_business = models.Business(
-        **business.dict(), business_category_id=business_category_id
+        name=business_name, business_category_id=business_category_id
     )
     db.add(db_business)
     db.commit()
