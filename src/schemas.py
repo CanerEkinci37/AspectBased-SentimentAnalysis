@@ -47,22 +47,6 @@ class AspectCategory(AspectCategoryBase):
         orm_mode = True
 
 
-class BusinessBase(BaseModel):
-    name: str
-
-
-class BusinessCreate(BusinessBase):
-    pass
-
-
-class Business(BusinessBase):
-    id: int
-    business_category_id: int
-
-    class Config:
-        orm_mode = True
-
-
 class AspectSentimentCategoryBase(BaseModel):
     pass
 
