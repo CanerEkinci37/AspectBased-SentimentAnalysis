@@ -70,51 +70,60 @@ def process_otel_form(
 # Businesses
 
 
-@router.get("/businesses/", tags=["businesses"])
+@router.get("/businesses/", tags=["businesses"], response_class=HTMLResponse)
 async def get_business(
-    business_category: str,
-    business_name: str,
+    request: Request,
     db: Session = Depends(dependencies.get_db),
 ):
-    business_category_id = crud.get_business_category_id(db=db, name=business_category)
-    if business_category_id:
-        business_id = crud.get_business_id(
-            db=db, name=business_name, business_category_id=business_category_id
+    db_business = {}
+    businesses = crud.get_businesses(db=db)
+    for business in businesses:
+        business_name = business[0]
+        business_category = crud.get_business_category_name(db=db, id=business[1])
+        db_business[business_name] = business_category
+    context = {"businesses": db_business}
+    return templates.TemplateResponse(
+        request=request, context=context, name="business.html"
+    )
+
+
+@router.post("/businesses/", tags=["businesses"], response_class=HTMLResponse)
+async def post_business(
+    request: Request,
+    select_businesses: str = Form(...),
+    db: Session = Depends(dependencies.get_db),
+):
+    name = select_businesses.split("-")[0].strip()
+    category = select_businesses.split("-")[1].strip()
+    category_id = crud.get_business_category_id(db=db, name=category)
+    business_id = crud.get_business_id(
+        db=db, name=name, business_category_id=category_id
+    )
+
+    business_records = crud.get_business_records_by_business(
+        db=db, business_id=business_id
+    )
+    if category == "restaurant":
+        _, category_sentiment_count = helpers.get_restaurant_category_sentiments()
+    else:
+        _, category_sentiment_count = helpers.get_otel_category_sentiments()
+
+    for record in business_records:
+        aspect_sentiment_category = crud.get_aspect_sentiment_category_by_id(
+            db=db, id=record.aspect_sentiment_category_id
         )
-        if business_id:
-            if business_category == "restaurant":
-                _, category_sentiment_count = (
-                    helpers.get_restaurant_category_sentiments()
-                )
-            else:
-                _, category_sentiment_count = helpers.get_otel_category_sentiments()
-            for aspect, sentiments in category_sentiment_count.items():
-                aspect_category_id = crud.get_aspect_category_id(
-                    db=db, name=aspect, business_category_id=business_category_id
-                )
-                for sentiment in sentiments:
-                    sentiment_id = crud.get_sentiment_category_id(db=db, name=sentiment)
-                    aspect_sentiment_category_id = (
-                        crud.get_aspect_sentiment_category_id(
-                            db=db,
-                            sentiment_id=sentiment_id,
-                            aspect_category_id=aspect_category_id,
-                        )
-                    )
-                    business_record = crud.get_business_record(
-                        db=db,
-                        business_id=business_id,
-                        aspect_sentiment_category_id=aspect_sentiment_category_id,
-                    )
-                    category_sentiment_count[aspect][sentiment] = business_record.count
-            return {f"{business_name.title()}": category_sentiment_count}
-        raise HTTPException(
-            status_code=404,
-            detail=f"There is not such a {business_name.title()} business name",
+        aspect = crud.get_aspect_category_by_id(
+            db=db, id=aspect_sentiment_category.aspect_category_id
         )
-    raise HTTPException(
-        status_code=404,
-        detail=f"There is not like {business_category.title()} business category",
+        sentiment = crud.get_sentiment_category_by_id(
+            db=db, id=aspect_sentiment_category.sentiment_id
+        )
+        category_sentiment_count[aspect.name.upper()][
+            sentiment.name.upper()
+        ] = record.count
+    context = {"results": category_sentiment_count}
+    return templates.TemplateResponse(
+        request=request, context=context, name="business.html"
     )
 
 
