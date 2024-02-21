@@ -6,6 +6,15 @@ from . import models, schemas
 # Business Category
 
 
+def get_business_category_name(db: Session, id: int):
+    business_category = (
+        db.query(models.BusinessCategory)
+        .filter(models.BusinessCategory.id == id)
+        .first()
+    )
+    return business_category.name
+
+
 def get_business_category_id(db: Session, name: str):
     business_category = (
         db.query(models.BusinessCategory)
@@ -30,6 +39,15 @@ def create_business_category(
 # Sentiment Category
 
 
+def get_sentiment_category_by_id(db: Session, id: int):
+    sentiment_category = (
+        db.query(models.SentimentCategory)
+        .filter(models.SentimentCategory.id == id)
+        .first()
+    )
+    return sentiment_category
+
+
 def get_sentiment_category_id(db: Session, name: str):
     sentiment_category = (
         db.query(models.SentimentCategory)
@@ -52,6 +70,13 @@ def create_sentiment_category(
 
 
 # Aspect Category
+
+
+def get_aspect_category_by_id(db: Session, id: int):
+    aspect_category = (
+        db.query(models.AspectCategory).filter(models.AspectCategory.id == id).first()
+    )
+    return aspect_category
 
 
 def get_aspect_category_id(db: Session, name: str, business_category_id: int):
@@ -85,14 +110,11 @@ def create_aspect_category(
 # Business
 
 
-def get_businesses_by_category(db: Session, business_category_id: int):
-    db_businesses = (
-        db.query(models.Business)
-        .filter(models.Business.business_category_id == business_category_id)
-        .all()
-    )
-    if db_businesses:
-        return db_businesses
+def get_businesses(db: Session):
+    businesses = db.query(
+        models.Business.name, models.Business.business_category_id
+    ).all()
+    return businesses
 
 
 def get_business_id(db: Session, name: str, business_category_id: int):
@@ -121,6 +143,15 @@ def create_business(db: Session, business_name: str, business_category_id):
 # Aspect Sentiment Category
 
 
+def get_aspect_sentiment_category_by_id(db: Session, id: int):
+    aspect_sentiment_category = (
+        db.query(models.AspectSentimentCategory)
+        .filter(models.AspectSentimentCategory.id == id)
+        .first()
+    )
+    return aspect_sentiment_category
+
+
 def get_aspect_sentiment_category_id(
     db: Session, sentiment_id: int, aspect_category_id: int
 ):
@@ -147,6 +178,15 @@ def create_aspect_sentiment(db: Session, aspect_category_id: int, sentiment_id: 
 
 
 # Business Record
+
+
+def get_business_records_by_business(db: Session, business_id: int):
+    record = (
+        db.query(models.BusinessRecord)
+        .filter(models.BusinessRecord.business_id == business_id)
+        .all()
+    )
+    return record
 
 
 def get_business_record(
