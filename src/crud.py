@@ -226,3 +226,29 @@ def create_business_record(
     db.commit()
     db.refresh(db_business_record)
     return db_business_record
+
+
+def get_business_records_by_name_and_category(
+    db: Session, business_name: str, category_name: str
+):
+    category_id = get_business_category_id(db=db, name=category_name)
+    business_id = get_business_id(
+        db=db, name=business_name, business_category_id=category_id
+    )
+    records = get_business_records_by_business(db=db, business_id=business_id)
+    return records
+
+
+def get_aspect_sentiment_by_record(db, record: models.BusinessRecord):
+    db_aspect_sentiment = get_aspect_sentiment_category_by_id(
+        db=db, id=record.aspect_sentiment_category_id
+    )
+    if db_aspect_sentiment:
+        print(db_aspect_sentiment.aspect_category_id)
+    db_aspect = get_aspect_category_by_id(
+        db=db, id=db_aspect_sentiment.aspect_category_id
+    )
+    db_sentiment = get_sentiment_category_by_id(
+        db=db, id=db_aspect_sentiment.sentiment_id
+    )
+    return db_aspect.name.upper(), db_sentiment.name.upper()
