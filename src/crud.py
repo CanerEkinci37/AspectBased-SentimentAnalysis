@@ -6,6 +6,11 @@ from . import models, schemas
 # Business Category
 
 
+def get_distinct_business_category_names(db: Session):
+    business_categories = db.query(models.BusinessCategory.name.distinct()).all()
+    return business_categories
+
+
 def get_business_category_name(db: Session, id: int):
     business_category = (
         db.query(models.BusinessCategory)
@@ -108,6 +113,11 @@ def create_aspect_category(
 
 
 # Business
+
+
+def get_distinct_business_names(db: Session):
+    businesses = db.query(models.Business.name.distinct()).all()
+    return businesses
 
 
 def get_businesses(db: Session):
