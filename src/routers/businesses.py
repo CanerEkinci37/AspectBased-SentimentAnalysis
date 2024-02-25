@@ -39,32 +39,14 @@ async def post_business(
 ):
     name = select_businesses.split("-")[0].strip()
     category = select_businesses.split("-")[1].strip()
-    category_id = crud.get_business_category_id(db=db, name=category)
-    business_id = crud.get_business_id(
-        db=db, name=name, business_category_id=category_id
+    business_records = crud.get_business_records_by_name_and_category(
+        db=db, business_name=name, category_name=category
     )
-
-    business_records = crud.get_business_records_by_business(
-        db=db, business_id=business_id
-    )
-    if category == "restaurant":
-        _, category_sentiment_count = helpers.get_restaurant_category_sentiments()
-    else:
-        _, category_sentiment_count = helpers.get_otel_category_sentiments()
+    _, category_sentiment_count = helpers.get_category_sentiments(category=category)
 
     for record in business_records:
-        aspect_sentiment_category = crud.get_aspect_sentiment_category_by_id(
-            db=db, id=record.aspect_sentiment_category_id
-        )
-        aspect = crud.get_aspect_category_by_id(
-            db=db, id=aspect_sentiment_category.aspect_category_id
-        )
-        sentiment = crud.get_sentiment_category_by_id(
-            db=db, id=aspect_sentiment_category.sentiment_id
-        )
-        category_sentiment_count[aspect.name.upper()][
-            sentiment.name.upper()
-        ] = record.count
+        aspect, sentiment = crud.get_aspect_sentiment_by_record(db=db, record=record)
+        category_sentiment_count[aspect][sentiment] = record.count
     context = {"results": category_sentiment_count}
     return templates.TemplateResponse(
         request=request, context=context, name="business.html"
