@@ -14,62 +14,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(BASE_DIR) + "/templates")
 
 
-# Analyzes
-
-
-@router.get("/analyze_restaurant/", response_class=HTMLResponse, tags=["businesses"])
-def get_restaurant_form(request: Request):
-    return templates.TemplateResponse(request=request, name="analyze_restaurant.html")
-
-
-@router.post("/analyze_restaurant/", response_class=HTMLResponse, tags=["businesses"])
-def process_restaurant_form(
-    request: Request,
-    review_column: str = Form(...),
-    csv_file: UploadFile = File(...),
-):
-    df = helpers.handle_dataset(csv_file)
-    review_texts = df[review_column].values
-    y_preds = helpers.get_restaurant_model().predict(review_texts)
-    restaurant_category, restaurant_category_count = (
-        helpers.get_restaurant_category_sentiments()
-    )
-    for pred in y_preds:
-        category, sentiment = restaurant_category[pred].split("#")
-        restaurant_category_count[category][sentiment] += 1
-    context = {"results": restaurant_category_count}
-    return templates.TemplateResponse(
-        request=request, context=context, name="analyze_restaurant.html"
-    )
-
-
-@router.get("/analyze_otel/", response_class=HTMLResponse, tags=["businesses"])
-def get_otel_form(request: Request):
-    return templates.TemplateResponse(request=request, name="analyze_otel.html")
-
-
-@router.post("/analyze_otel/", tags=["businesses"])
-def process_otel_form(
-    request: Request,
-    review_column: str = Form(...),
-    csv_file: UploadFile = File(...),
-):
-    df = helpers.handle_dataset(csv_file)
-    review_texts = df[review_column].values
-    y_preds = helpers.get_otel_model().predict(review_texts)
-    otel_category, otel_category_count = helpers.get_otel_category_sentiments()
-    for pred in y_preds:
-        category, sentiment = otel_category[pred].split("#")
-        otel_category_count[category][sentiment] += 1
-    context = {"results": otel_category_count}
-    return templates.TemplateResponse(
-        request=request, context=context, name="analyze_restaurant.html"
-    )
-
-
-# Businesses
-
-
 @router.get("/businesses/", tags=["businesses"], response_class=HTMLResponse)
 async def get_business(
     request: Request,
@@ -125,6 +69,32 @@ async def post_business(
     return templates.TemplateResponse(
         request=request, context=context, name="business.html"
     )
+
+
+@router.get("/analyze_business/", response_class=HTMLResponse, tags=["businesses"])
+def get_analyze_business(request: Request, db: Session = Depends(dependencies.get_db)):
+    categories = crud.get_distinct_business_category_names(db=db)
+    context = {"business_categories": categories}
+    return templates.TemplateResponse(request, "analyze_business.html", context)
+
+
+@router.post("/analyze_business/", response_class=HTMLResponse, tags=["businesses"])
+def post_analyze_business(
+    request: Request,
+    selected_category: str = Form(...),
+    column: str = Form(...),
+    file: UploadFile = File(...),
+):
+    df = helpers.handle_dataset(file)
+    reviews = df[column].values
+    preds = helpers.get_model(selected_category).predict(reviews)
+    categories, category_counts = helpers.get_category_sentiments(selected_category)
+
+    for pred in preds:
+        category, sentiment = categories[pred].split("#")
+        category_counts[category][sentiment] += 1
+    context = {"results": category_counts}
+    return templates.TemplateResponse(request, "analyze_business.html", context)
 
 
 @router.get("/compare_businesses/", tags=["businesses"])
